@@ -32,12 +32,12 @@ jobs:
         run: "deno install -gArf jsr:@deno/deployctl"
 
       - name: Build step
-        run: "deployctl deploy --project=puter --prod main.ts"
+        run: "deployctl deploy --project=name --prod main.ts"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "puter"
+          project: "tomc446-puterjs-2ap-88"
           entrypoint: "main.ts"
           root: ""
           
