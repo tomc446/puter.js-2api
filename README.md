@@ -6,9 +6,9 @@ Puter.js 2api deno version, reverse puter.js into openai API format
 ## 使用说明
 
 1. **环境变量配置**:
-   - `jwtTokens`: Puter.com 的 JWT 令牌，支持多个令牌用英文逗号`,`分隔
-   - example：jwtTokens = "ey1,ey2,…"
-   - `authTokens`: API 鉴权令牌，默认为 `sk-yourauthtoken`，支持多个令牌用英文逗号`,`分隔
+   - `JWT_TOKEN`: Puter.com 的 JWT 令牌，支持多个令牌用英文逗号`,`分隔
+   - example："ey1,ey2,…"
+   - `AUTH_TOKEN`: API 鉴权令牌，默认为 `sk-yourauthtoken`，支持多个令牌用英文逗号`,`分隔
 
 **获取jwt令牌**:
 
