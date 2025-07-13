@@ -151,7 +151,7 @@ async function handleChatRequest(req: Request) {
     }
 
     if (stream) {
-      // 流式响应
+      // 创建转换流来处理SSE格式
       const { readable, writable } = new TransformStream();
       const writer = writable.getWriter();
       
@@ -160,14 +160,87 @@ async function handleChatRequest(req: Request) {
         const reader = response.body?.getReader();
         if (!reader) return;
 
+        // 发送初始角色信息
+        const initialEvent = {
+          id: `chatcmpl-${Date.now()}`,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now() / 1000),
+          model,
+          choices: [{
+            index: 0,
+            delta: { role: "assistant" },
+            finish_reason: null
+          }]
+        };
+        await writer.write(new TextEncoder().encode(`data: ${JSON.stringify(initialEvent)}\n\n`));
+
         try {
+          let buffer = "";
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             
-            // 转发数据块
-            await writer.write(value);
+            // 将Uint8Array转换为字符串
+            const chunk = new TextDecoder().decode(value);
+            buffer += chunk;
+            
+            // 处理可能的多行数据
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || ""; // 保留未完成的行
+            
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              
+              try {
+                const jsonData = JSON.parse(line);
+                
+                // 处理不同的响应格式
+                let text = "";
+                if (jsonData.text) {
+                  text = jsonData.text;
+                } else if (jsonData.result?.message?.content) {
+                  const content = jsonData.result.message.content;
+                  if (Array.isArray(content)) {
+                    text = content.find((item: any) => item.type === "text")?.text || "";
+                  } else if (typeof content === "string") {
+                    text = content;
+                  }
+                }
+                
+                if (text) {
+                  const chunkEvent = {
+                    id: `chatcmpl-${Date.now()}`,
+                    object: "chat.completion.chunk",
+                    created: Math.floor(Date.now() / 1000),
+                    model,
+                    choices: [{
+                      index: 0,
+                      delta: { content: text },
+                      finish_reason: null
+                    }]
+                  };
+                  await writer.write(new TextEncoder().encode(`data: ${JSON.stringify(chunkEvent)}\n\n`));
+                }
+              } catch (e) {
+                console.error("Error parsing JSON:", e);
+              }
+            }
           }
+          
+          // 发送结束事件
+          const doneEvent = {
+            id: `chatcmpl-${Date.now()}`,
+            object: "chat.completion.chunk",
+            created: Math.floor(Date.now() / 1000),
+            model,
+            choices: [{
+              index: 0,
+              delta: {},
+              finish_reason: "stop"
+            }]
+          };
+          await writer.write(new TextEncoder().encode(`data: ${JSON.stringify(doneEvent)}\n\n`));
+          await writer.write(new TextEncoder().encode("data: [DONE]\n\n"));
         } finally {
           await writer.close();
         }
@@ -244,7 +317,7 @@ async function handler(req: Request) {
   } else if (url.pathname === "/v1/chat/completions" && req.method === "POST") {
     return handleChatRequest(req);
   } else {
-    return new Response(JSON.stringify({ error: "The request path was not found and the Puter.JS 2API is running" }), {
+    return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404,
       headers: { "Content-Type": "application/json" }
     });
