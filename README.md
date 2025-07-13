@@ -16,7 +16,6 @@ Puter.js 2api deno version, reverse puter.js into openai API format
 - `https：//puter.com/`
 - 注册登陆
 - 打开开发人员工具（F12），转到“网络”选项卡
-发送一条聊天请求
 - 从请求中复制Authorization标头值，获取Bearer后面的字符串
 
 ----
