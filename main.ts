@@ -244,7 +244,7 @@ async function handler(req: Request) {
   } else if (url.pathname === "/v1/chat/completions" && req.method === "POST") {
     return handleChatRequest(req);
   } else {
-    return new Response(JSON.stringify({ error: "Not found" }), {
+    return new Response(JSON.stringify({ error: "The request path was not found and the Puter.JS 2API is running" }), {
       status: 404,
       headers: { "Content-Type": "application/json" }
     });
