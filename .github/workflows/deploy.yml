@@ -35,7 +35,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "tomc446-puterjs-2ap-68"
-          entrypoint: "deployctl deploy --project=name --prod main.ts"
+          entrypoint: "main.ts"
           root: ""
           
           
